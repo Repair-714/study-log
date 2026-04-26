@@ -1,0 +1,83 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+plt.rcParams['font.family'] = 'MS Gothic'
+
+# 一次線形写像の関数
+def f(x, a):
+    return a * (x - 0.5) + 0.5
+
+# パラメータ
+a_values = [1.1, 0.9, -0.9, -1.0]
+x0 = 1
+n_steps = 5
+
+# 各aに対して時系列とcobweb diagramを描く
+fig, axes = plt.subplots(4, 2, figsize=(22, 22))
+
+# 全体のx範囲を計算
+all_x = []
+for a in a_values:
+    x = [x0]
+    for _ in range(n_steps):
+        x_next = f(x[-1], a)
+        x.append(x_next)
+    all_x.extend(x)
+x_min = min(all_x)
+x_max = max(all_x)
+
+for i, a in enumerate(a_values):
+    # 時系列の計算
+    x = [x0]
+    for _ in range(n_steps):
+        x_next = f(x[-1], a)
+        x.append(x_next)
+
+    # 時系列グラフ
+    ax_ts = axes[i, 0]
+    ax_ts.plot(range(len(x)), x, 'o-', label=f'a={a}')
+    ax_ts.set_xlabel('n')
+    ax_ts.set_ylabel('X_n')
+    ax_ts.set_title(f'時系列 (a={a})')
+    ax_ts.set_xlim(0, n_steps)
+    x_min_a = min(x)
+    x_max_a = max(x)
+    y_margin = max(0.1, (x_max_a - x_min_a) * 0.1)
+    ax_ts.set_ylim(x_min_a - y_margin, x_max_a + y_margin)
+    ax_ts.grid(True)
+    ax_ts.legend()
+    ax_ts.set_aspect('equal', adjustable='box')
+
+    # Cobweb diagram
+    ax_cb = axes[i, 1]
+    # 関数 f(x) をプロット
+    x_range = np.linspace(x_min_a - y_margin, x_max_a + y_margin, 100)
+    ax_cb.plot(x_range, f(x_range, a))
+    # y = x をプロット
+    ax_cb.plot(x_range, x_range, 'k--')
+
+    # cobwebの線を描く
+    current_x = x0
+    for j in range(n_steps):
+        next_x = f(current_x, a)
+        # 水平線: (current_x, current_x) to (current_x, next_x)
+        ax_cb.plot([current_x, current_x], [current_x, next_x], 'r-')
+        # 垂直線: (current_x, next_x) to (next_x, next_x)
+        ax_cb.plot([current_x, next_x], [next_x, next_x], 'r-')
+        current_x = next_x
+
+    # 点をプロット
+    for j in range(len(x)-1):
+        ax_cb.plot(x[j], x[j+1], 'ro')
+
+    ax_cb.set_xlabel('X_n')
+    ax_cb.set_ylabel('X_{n+1}')
+    ax_cb.set_title(f'リターンマップ (Cobweb, a={a})')
+    ax_cb.set_xlim(x_min_a - y_margin, x_max_a + y_margin)
+    ax_cb.set_ylim(x_min_a - y_margin, x_max_a + y_margin)
+    ax_cb.grid(True)
+    ax_cb.set_aspect('equal', adjustable='box')
+
+plt.tight_layout()
+plt.savefig('chaos_plots.png', dpi=200)
+plt.show()
