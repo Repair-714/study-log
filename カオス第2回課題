@@ -13,7 +13,7 @@ x0 = 1
 n_steps = 5
 
 # 各aに対して時系列とcobweb diagramを描く
-fig, axes = plt.subplots(4, 2, figsize=(22, 22))
+fig, axes = plt.subplots(4, 2, figsize=(26, 28))
 
 # 全体のx範囲を計算
 all_x = []
@@ -72,12 +72,11 @@ for i, a in enumerate(a_values):
 
     ax_cb.set_xlabel('X_n')
     ax_cb.set_ylabel('X_{n+1}')
-    ax_cb.set_title(f'リターンマップ (Cobweb, a={a})')
     ax_cb.set_xlim(x_min_a - y_margin, x_max_a + y_margin)
     ax_cb.set_ylim(x_min_a - y_margin, x_max_a + y_margin)
     ax_cb.grid(True)
     ax_cb.set_aspect('equal', adjustable='box')
 
-plt.tight_layout()
+plt.tight_layout(pad=3.0, h_pad=3.0, w_pad=2.0)
 plt.savefig('chaos_plots.png', dpi=200)
 plt.show()
