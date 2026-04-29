@@ -1,0 +1,47 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# --- 1. 準備とハイパーパラメータ ---
+np.random.seed(2)
+n_inputs = 1
+n_reservoir = 100  # リザバーのニューロン数
+n_outputs = 1
+spectral_radius = 0.95  # スペクトル半径（リザバーの安定性）
+
+# サイン波データの生成
+data = np.sin(np.linspace(0, 20 * np.pi, 1000))
+inputs = data[:-1].reshape(-1, 1)
+targets = data[1:].reshape(-1, 1)
+
+# --- 2. 重みの初期化 (固定) ---
+# 入力重み: 一様分布
+Win = (np.random.rand(n_reservoir, n_inputs) - 0.5) * 1.0
+# リザバー重み: ランダムだが、スペクトル半径を調整して「エコー状態」を保つ
+Wres = np.random.randn(n_reservoir, n_reservoir)
+Wres *= spectral_radius / np.max(np.abs(np.linalg.eigvals(Wres)))
+
+# --- 3. リザバーの状態遷移 ---
+states = np.zeros((len(inputs), n_reservoir))
+current_state = np.zeros((n_reservoir, 1))
+
+for i in range(len(inputs)):
+    # 活性化関数 tanh(Win*u + Wres*x)
+    u = inputs[i].reshape(-1, 1)
+    current_state = np.tanh(np.dot(Win, u) + np.dot(Wres, current_state))
+    states[i, :] = current_state.ravel()
+
+# --- 4. 学習 (Readout層の重み Wout を求める) ---
+# 線形回帰（リッジ回帰）で一気に解く。勾配降下法はいらない！
+# states * Wout = targets  =>  Wout = targets * pinv(states)
+Wout = np.dot(np.linalg.pinv(states), targets).T
+
+# --- 5. 予測 ---
+prediction = np.dot(states, Wout.T)
+
+# --- 視覚化 ---
+plt.figure(figsize=(10, 4))
+plt.plot(targets[:100], label="Target", alpha=0.7)
+plt.plot(prediction[:100], label="Prediction", linestyle="--")
+plt.title("Reservoir Computing: Sine Wave Prediction")
+plt.legend()
+plt.show()
